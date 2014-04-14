@@ -34,7 +34,7 @@ ColonyCoefficientTechrVector <- function(coefs) {
 }
 
 # Calculates the average from technical replicates 
-# and selects the best candidate for for further
+# and selects the best candidate for the further
 # calculations
 #
 ColonySelectBestAvg <- function(data, coefs.vect) {
@@ -57,4 +57,21 @@ ColonySelectBestAvg <- function(data, coefs.vect) {
     data[['selected']][index2] <- dilution.label
   }  
   return(data)
+}
+
+# Calculates the absolute number of colonies 
+# per sample based on the dilution level.
+# Will return the calculations inside a list
+# with 'Samples' and 'Controls' labels.
+#
+ColonyCalcAbsolute <- function(data) {
+  dilution.levels <- data[['selected']]
+  controls <- numeric(0)
+  samples <- numeric(0)
+  for(i in seq_along(1:length(dilution.levels))) {
+    ifelse(grepl("[C]", data[i, 'Sample']), controls <- append(controls, data[i, dilution.levels[i]] * 10^as.numeric(substring(dilution.levels[i], 2))), samples <- append(samples, data[i, dilution.levels[i]] * 10^as.numeric(substring(dilution.levels[i], 2))))
+  }
+  result <- list(controls, samples)
+  names(result) <- c("Controls", "Samples")
+  return(result)
 }
