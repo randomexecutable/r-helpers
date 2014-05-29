@@ -45,16 +45,15 @@ ColonySelectBestAvg <- function(data, coefs.vect) {
     number.treplicates <- as.numeric(coefs.vect[dilution.label])
     for(j in seq_along(1:number.treplicates)) {
       current <- paste(names(coefs.vect)[i], as.character(j), sep=".")
-      treplicates <- append(treplicates, current)
+      treplicates <- append(treplicates, current) # collects all labels for one dilution
     }
-    total.sum <- rowSums(data[treplicates])
-    data <- cbind(data, (total.sum/number.treplicates))
-    names(data)[length(data)] <- dilution.label
+    data <- cbind(data, rowMeans(data[treplicates] * data$Coefficient, na.rm=TRUE))
+    names(data)[length(data)] <- dilution.label   
     index <- is.na(data[['selected']])
     data[['selected']][index] <- dilution.label
     tempcol <- which(colnames(data) == dilution.label)
-    index2 <- (data[[tempcol]] > 14 & data[[tempcol]] < 65)
-    data[['selected']][index2] <- dilution.label
+    index <- (data[[tempcol]] > 0)
+    data[['selected']][index] <- dilution.label
   }  
   return(data)
 }
@@ -75,3 +74,13 @@ ColonyCalcAbsolute <- function(data) {
   names(result) <- c("Controls", "Samples")
   return(result)
 }
+
+# Wraps up the other functions
+#
+ColonyCalculateBReplicates <- function(data) {
+  coef.names <- ColonyCoefficientNames(names(data))
+  technical.replicates <- ColonyCoefficientTechrVector(coef.names)
+  avgs <- ColonySelectBestAvg(data, technical.replicates)  # selection works but could be better
+  return(ColonyCalcAbsolute(avgs))
+}
+
